@@ -1,10 +1,9 @@
 import axios from 'axios';
 
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000/api';
+
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000/api',
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  baseURL: BASE_URL,
 });
 
 // Request Interceptor: Attach JWT Token if available
@@ -25,28 +24,22 @@ API.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // Check if error is 401 and request hasn't been retried yet
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       const refreshToken = localStorage.getItem('refresh_token');
 
       if (refreshToken) {
         try {
-          const res = await axios.post(
-            `${import.meta.env.VITE_API_BASE_URL}/auth/token/refresh/`,
-            { refresh: refreshToken }
-          );
+          const res = await axios.post(`${BASE_URL}/auth/token/refresh/`, {
+            refresh: refreshToken,
+          });
 
           const newAccessToken = res.data.access;
           localStorage.setItem('access_token', newAccessToken);
 
-          // Attach new token to retry request
           originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
-
-          // Retry the failed request with the customized instance
           return API(originalRequest);
         } catch (refreshError) {
-          // Clear session and redirect on refresh failure
           localStorage.removeItem('access_token');
           localStorage.removeItem('refresh_token');
           window.location.href = '/login';

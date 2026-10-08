@@ -1,22 +1,41 @@
-// eslint-disable-next-line no-unused-vars
-import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
+import Footer from './components/Footer';
+import AudioPlayer from './components/AudioPlayer';
 import SermonList from './pages/SermonList';
+import SermonDetail from './pages/SermonDetail';
+import UploadSermon from './pages/UploadSermon';
+import AdminLogin from './pages/Login';
+import ProtectedRoute from './components/ProtectedRoute';
+import { PlayerProvider } from './context/PlayerContext';
 
-function App() {
+export default function App() {
   return (
-    <Router>
-      <div className="min-h-screen bg-slate-950 text-slate-100 font-sans">
-        <Navbar />
-        <main className="max-w-7xl mx-auto px-4 py-8">
-          <Routes>
-            <Route path="/" element={<SermonList />} />
-          </Routes>
-        </main>
-      </div>
-    </Router>
+    <PlayerProvider>
+      <Router>
+        <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between">
+          <div>
+            <Navbar />
+            <main>
+              <Routes>
+                <Route path="/" element={<SermonList />} />
+                <Route path="/sermon/:id" element={<SermonDetail />} />
+                <Route path="/admin/login" element={<AdminLogin />} />
+                <Route
+                  path="/upload"
+                  element={
+                    <ProtectedRoute>
+                      <UploadSermon />
+                    </ProtectedRoute>
+                  }
+                />
+              </Routes>
+            </main>
+          </div>
+          <Footer />
+          <AudioPlayer />
+        </div>
+      </Router>
+    </PlayerProvider>
   );
 }
-
-export default App;
